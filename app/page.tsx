@@ -1,6 +1,16 @@
+'use client';
+
 import Header from '@/components/Header';
+import { getSpotifyAuthUrl } from '@/lib/auth';
 
 export default function HomePage() {
+  const handleConnect = () => {
+    const url = getSpotifyAuthUrl();
+    if (url !== '#') {
+      window.location.href = url;
+    }
+  };
+
   return (
     <main className="min-h-screen bg-black text-white flex flex-col">
       <Header />
@@ -13,9 +23,10 @@ export default function HomePage() {
             Generador de playlists personalizadas a partir de tus gustos en Spotify.
           </p>
           <button
-            className="px-5 py-3 rounded-full bg-green-500 text-black font-semibold opacity-60 cursor-not-allowed"
+            onClick={handleConnect}
+            className="px-5 py-3 rounded-full bg-green-500 text-black font-semibold hover:bg-green-400 transition"
           >
-            Conectar con Spotify (pendiente)
+            Conectar con Spotify
           </button>
         </div>
       </section>
