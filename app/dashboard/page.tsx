@@ -13,7 +13,12 @@ import type { SpotifyArtist } from '@/lib/spotify';
 
 export default function DashboardPage() {
   const router = useRouter();
+
   const [artists, setArtists] = useState<SpotifyArtist[]>([]);
+  const [genres, setGenres] = useState<string[]>([]);
+  const [decades, setDecades] = useState<number[]>([]);
+  const [moods, setMoods] = useState<string[]>([]);
+  const [popularity, setPopularity] = useState<[number, number]>([30, 80]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -38,10 +43,10 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           <ArtistWidget selectedItems={artists} onSelect={setArtists} />
-          <GenreWidget />
-          <DecadeWidget />
-          <MoodWidget />
-          <PopularityWidget />
+          <GenreWidget selectedItems={genres} onSelect={setGenres} />
+          <DecadeWidget selectedItems={decades} onSelect={setDecades} />
+          <MoodWidget selectedItems={moods} onSelect={setMoods} />
+          <PopularityWidget selectedItems={popularity} onSelect={setPopularity} />
         </div>
       </section>
     </main>
