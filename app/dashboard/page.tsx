@@ -9,6 +9,7 @@ import GenreWidget from '@/components/widgets/GenreWidget';
 import DecadeWidget from '@/components/widgets/DecadeWidget';
 import MoodWidget from '@/components/widgets/MoodWidget';
 import PopularityWidget from '@/components/widgets/PopularityWidget';
+import PlaylistDisplay from '@/components/PlaylistDisplay';
 import type { SpotifyArtist, SpotifyTrack } from '@/lib/spotify';
 import { generatePlaylist } from '@/lib/spotify';
 
@@ -24,6 +25,7 @@ export default function DashboardPage() {
   const [tracks, setTracks] = useState<SpotifyTrack[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasGenerated, setHasGenerated] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -41,6 +43,7 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     setTracks([]);
+    setHasGenerated(false);
 
     try {
       const prefs = {
@@ -53,6 +56,7 @@ export default function DashboardPage() {
 
       const result = await generatePlaylist(prefs);
       setTracks(result);
+      setHasGenerated(true);
 
       if (!result || result.length === 0) {
         setError(
@@ -62,6 +66,7 @@ export default function DashboardPage() {
     } catch (e: any) {
       console.error(e);
       setError(e.message || 'Error al generar la playlist.');
+      setHasGenerated(true);
     } finally {
       setLoading(false);
     }
@@ -95,12 +100,7 @@ export default function DashboardPage() {
           {error && <span className="text-sm text-red-400">{error}</span>}
         </div>
 
-        {/* De momento, sin UI bonita: solo un contador rápido */}
-        {tracks.length > 0 && !error && (
-          <p className="mt-4 text-sm text-gray-300">
-            Playlist generada con {tracks.length} canciones (vista detallada en el siguiente commit).
-          </p>
-        )}
+        <PlaylistDisplay tracks={tracks} hasGenerated={hasGenerated} />
       </section>
     </main>
   );
