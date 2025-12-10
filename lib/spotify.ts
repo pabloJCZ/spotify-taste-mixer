@@ -85,3 +85,59 @@ export async function getTopTracks(limit = 50): Promise<SpotifyTrack[]> {
 
   return (data.items as SpotifyTrack[]) ?? [];
 }
+
+export type PlaylistPreferences = {
+  artists: SpotifyArtist[];
+  genres: string[];
+  decades: number[];
+  moods: string[];
+  popularity: [number, number];
+};
+
+function getTrackYear(track: SpotifyTrack): number | null {
+  const date = track.album.release_date;
+  if (!date) return null;
+  const yearStr = date.slice(0, 4);
+  const year = Number(yearStr);
+  return Number.isNaN(year) ? null : year;
+}
+
+export async function generatePlaylist(
+  preferences: PlaylistPreferences
+): Promise<SpotifyTrack[]> {
+  const { artists, decades, popularity } = preferences;
+
+  // 1. Partimos de las top tracks del usuario
+  const allTracks = await getTopTracks(50);
+  let filtered = [...allTracks];
+
+  // 2. Filtrar por artistas seleccionados (si hay)
+  if (artists.length > 0) {
+    const selectedIds = new Set(artists.map(a => a.id));
+    filtered = filtered.filter(track =>
+      track.artists.some(a => selectedIds.has(a.id))
+    );
+  }
+
+  // 3. Filtrar por décadas (si hay)
+  if (decades.length > 0) {
+    const selectedDecades = new Set(decades);
+    filtered = filtered.filter(track => {
+      const year = getTrackYear(track);
+      if (!year) return false;
+      const decadeStart = Math.floor(year / 10) * 10;
+      return selectedDecades.has(decadeStart);
+    });
+  }
+
+  // 4. Filtrar por popularidad
+  const [minPop, maxPop] = popularity;
+  filtered = filtered.filter(track =>
+    track.popularity >= minPop && track.popularity <= maxPop
+  );
+
+  // 5. (Opcional) mezclar un poco y limitar tamaño
+  filtered = filtered.slice(0, 30);
+
+  return filtered;
+}

@@ -9,7 +9,8 @@ import GenreWidget from '@/components/widgets/GenreWidget';
 import DecadeWidget from '@/components/widgets/DecadeWidget';
 import MoodWidget from '@/components/widgets/MoodWidget';
 import PopularityWidget from '@/components/widgets/PopularityWidget';
-import type { SpotifyArtist } from '@/lib/spotify';
+import type { SpotifyArtist, SpotifyTrack } from '@/lib/spotify';
+import { generatePlaylist } from '@/lib/spotify';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -19,6 +20,10 @@ export default function DashboardPage() {
   const [decades, setDecades] = useState<number[]>([]);
   const [moods, setMoods] = useState<string[]>([]);
   const [popularity, setPopularity] = useState<[number, number]>([30, 80]);
+
+  const [tracks, setTracks] = useState<SpotifyTrack[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -30,6 +35,36 @@ export default function DashboardPage() {
   const handleLogout = () => {
     clearTokens();
     router.replace('/');
+  };
+
+  const handleGenerate = async () => {
+    setLoading(true);
+    setError(null);
+    setTracks([]);
+
+    try {
+      const prefs = {
+        artists,
+        genres,
+        decades,
+        moods,
+        popularity,
+      };
+
+      const result = await generatePlaylist(prefs);
+      setTracks(result);
+
+      if (!result || result.length === 0) {
+        setError(
+          'No se han encontrado canciones con estos criterios. Prueba a relajar un poco los filtros.'
+        );
+      }
+    } catch (e: any) {
+      console.error(e);
+      setError(e.message || 'Error al generar la playlist.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -48,6 +83,24 @@ export default function DashboardPage() {
           <MoodWidget selectedItems={moods} onSelect={setMoods} />
           <PopularityWidget selectedItems={popularity} onSelect={setPopularity} />
         </div>
+
+        <div className="mt-6 flex items-center gap-4">
+          <button
+            onClick={handleGenerate}
+            disabled={loading}
+            className="px-5 py-3 rounded-lg bg-green-500 text-black font-semibold hover:bg-green-400 disabled:opacity-60"
+          >
+            {loading ? 'Generando playlist...' : 'Generar playlist'}
+          </button>
+          {error && <span className="text-sm text-red-400">{error}</span>}
+        </div>
+
+        {/* De momento, sin UI bonita: solo un contador rápido */}
+        {tracks.length > 0 && !error && (
+          <p className="mt-4 text-sm text-gray-300">
+            Playlist generada con {tracks.length} canciones (vista detallada en el siguiente commit).
+          </p>
+        )}
       </section>
     </main>
   );
