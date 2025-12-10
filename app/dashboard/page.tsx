@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import { clearTokens, isAuthenticated } from '@/lib/auth';
@@ -9,9 +9,11 @@ import GenreWidget from '@/components/widgets/GenreWidget';
 import DecadeWidget from '@/components/widgets/DecadeWidget';
 import MoodWidget from '@/components/widgets/MoodWidget';
 import PopularityWidget from '@/components/widgets/PopularityWidget';
+import type { SpotifyArtist } from '@/lib/spotify';
 
 export default function DashboardPage() {
   const router = useRouter();
+  const [artists, setArtists] = useState<SpotifyArtist[]>([]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -35,7 +37,7 @@ export default function DashboardPage() {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          <ArtistWidget />
+          <ArtistWidget selectedItems={artists} onSelect={setArtists} />
           <GenreWidget />
           <DecadeWidget />
           <MoodWidget />
