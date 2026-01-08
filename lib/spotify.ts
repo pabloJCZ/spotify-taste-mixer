@@ -107,11 +107,9 @@ export async function generatePlaylist(
 ): Promise<SpotifyTrack[]> {
   const { artists, decades, popularity } = preferences;
 
-  // 1. Partimos de las top tracks del usuario
   const allTracks = await getTopTracks(50);
   let filtered = [...allTracks];
 
-  // 2. Filtrar por artistas seleccionados (si hay)
   if (artists.length > 0) {
     const selectedIds = new Set(artists.map(a => a.id));
     filtered = filtered.filter(track =>
@@ -119,7 +117,6 @@ export async function generatePlaylist(
     );
   }
 
-  // 3. Filtrar por décadas (si hay)
   if (decades.length > 0) {
     const selectedDecades = new Set(decades);
     filtered = filtered.filter(track => {
@@ -130,14 +127,10 @@ export async function generatePlaylist(
     });
   }
 
-  // 4. Filtrar por popularidad
   const [minPop, maxPop] = popularity;
   filtered = filtered.filter(track =>
     track.popularity >= minPop && track.popularity <= maxPop
   );
-
-  // 5. (Opcional) mezclar un poco y limitar tamaño
-  filtered = filtered.slice(0, 30);
 
   return filtered;
 }
